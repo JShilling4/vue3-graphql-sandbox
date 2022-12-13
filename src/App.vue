@@ -1,6 +1,10 @@
 <script setup lang="ts">
+import { useQuery } from "@vue/apollo-composable";
 import { ref } from "vue";
-import { getAllCharacters, getCharacter } from "./api/graphql/queries";
+import {
+  CHARACTERS_QUERY,
+  CHARACTER_QUERY,
+} from "./api/graphql/queries/characters";
 
 const characterId = ref<string>("1");
 
@@ -8,13 +12,11 @@ const {
   result: charactersResult,
   loading: charactersLoading,
   error: charactersError,
-} = getAllCharacters();
+} = useQuery(CHARACTERS_QUERY);
 
-const { result: characterResult } = getCharacter(characterId);
-
-function selectCharacter(id: string) {
-  characterId.value = id;
-}
+const { result: characterResult } = useQuery(CHARACTER_QUERY, {
+  id: characterId,
+});
 </script>
 
 <template>
@@ -29,7 +31,6 @@ function selectCharacter(id: string) {
         v-else
         v-for="character in charactersResult.characters.results"
         :key="character.id"
-        @click="selectCharacter(character.id)"
       >
         {{ character.name }}
       </p>
