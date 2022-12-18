@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { getAllCharacters, getCharacter } from "./api/graphql/queries";
+import { computed, ref } from "vue";
+import { charactersRepository } from "./api/repositories/characters";
 
 const characterId = ref<string>("1");
 
@@ -8,13 +8,18 @@ const {
   result: charactersResult,
   loading: charactersLoading,
   error: charactersError,
-} = getAllCharacters();
+  refetch: fetchAllCharacters,
+} = charactersRepository.getAll();
+const characters = computed(
+  () => charactersResult.value?.characters?.results ?? []
+);
 
-const { result: characterResult } = getCharacter(characterId);
-
-function selectCharacter(id: string) {
-  characterId.value = id;
-}
+const {
+  result: characterResult,
+  loading: characterLoading,
+  refetch: fetchCharacter,
+} = charactersRepository.get(characterId.value);
+const character = computed(() => characterResult.value?.character);
 </script>
 
 <template>
@@ -25,21 +30,23 @@ function selectCharacter(id: string) {
         Something went wrong...{{ charactersError.message }}
       </p>
       <p v-if="charactersLoading">Loading...</p>
-      <p
-        v-else
-        v-for="character in charactersResult.characters.results"
-        :key="character.id"
-        @click="selectCharacter(character.id)"
-      >
+      <div v-if="characters && characters.length">
+        <p v-for="(char, i) in characters" :key="i">
+          {{ char?.name }}
+        </p>
+      </div>
+    </div>
+
+    <div class="query-block">
+      <h1>Get Character By Id</h1>
+      <p v-if="characterLoading">Loading...</p>
+      <p v-else-if="character" class="">
         {{ character.name }}
       </p>
     </div>
-    <div class="query-block">
-      <h1>Get Character By Id</h1>
-      <p v-if="characterResult" class="">
-        {{ characterResult.character.name }}
-      </p>
-    </div>
+
+    <button @click="fetchAllCharacters()">Refetch Characters</button>
+    <button @click="fetchCharacter({ id: '2' })">Refetch Character</button>
   </main>
 </template>
 
