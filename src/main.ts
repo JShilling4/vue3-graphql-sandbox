@@ -1,15 +1,17 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
-import { DefaultApolloClient } from "@vue/apollo-composable";
-import { apolloClient } from "./api/graphql/apolloClient";
+import urql from "@urql/vue";
 
 import App from "./App.vue";
 import router from "./router";
 
 import "./assets/main.css";
 
-const app = createApp(App).provide(DefaultApolloClient, apolloClient);
+const app = createApp(App);
 
+app.use(urql, {
+  url: "https://rickandmortyapi.com/graphql",
+});
 app.use(createPinia());
 app.use(router);
 

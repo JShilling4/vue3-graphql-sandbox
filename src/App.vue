@@ -1,35 +1,48 @@
 <script setup lang="ts">
+import { useQuery } from "@urql/vue";
 import { computed, ref } from "vue";
-import { charactersRepository } from "./api/repositories/characters";
+import { graphql } from "./gql";
+import type { CharactersQuery, CharacterQuery } from "./gql/graphql";
 
 const characterId = ref<string>("1");
 
-const {
-  result: charactersResult,
-  loading: charactersLoading,
-  error: charactersError,
-  refetch: fetchAllCharacters,
-} = charactersRepository.getAll();
-const characters = computed(
-  () => charactersResult.value?.characters?.results ?? []
-);
+const { data } = useQuery<CharactersQuery>({
+  query: graphql(/* GraphQL */ `
+    query Characters {
+      characters {
+        results {
+          id
+          name
+        }
+      }
+    }
+  `),
+});
+const characters = computed(() => data.value?.characters?.results ?? []);
 
-const {
-  result: characterResult,
-  loading: characterLoading,
-  refetch: fetchCharacter,
-} = charactersRepository.get(characterId.value);
-const character = computed(() => characterResult.value?.character);
+const { data: data2 } = useQuery<CharacterQuery>({
+  query: graphql(/* GraphQL */ `
+    query Character($id: ID!) {
+      character(id: $id) {
+        id
+        name
+        gender
+      }
+    }
+  `),
+  variables: { id: characterId },
+});
+const character = computed(() => data2.value?.character);
 </script>
 
 <template>
   <main>
     <div class="query-block">
       <h1>Get All Characters</h1>
-      <p v-if="charactersError">
+      <!-- <p v-if="charactersError">
         Something went wrong...{{ charactersError.message }}
-      </p>
-      <p v-if="charactersLoading">Loading...</p>
+      </p> -->
+      <!-- <p v-if="charactersLoading">Loading...</p> -->
       <div v-if="characters && characters.length">
         <p v-for="(char, i) in characters" :key="i">
           {{ char?.name }}
@@ -39,14 +52,14 @@ const character = computed(() => characterResult.value?.character);
 
     <div class="query-block">
       <h1>Get Character By Id</h1>
-      <p v-if="characterLoading">Loading...</p>
-      <p v-else-if="character" class="">
+      <!-- <p v-if="characterLoading">Loading...</p> -->
+      <p v-if="character" class="">
         {{ character.name }}
       </p>
     </div>
 
-    <button @click="fetchAllCharacters()">Refetch Characters</button>
-    <button @click="fetchCharacter({ id: '2' })">Refetch Character</button>
+    <!-- <button @click="fetchAllCharacters()">Refetch Characters</button>
+    <button @click="fetchCharacter({ id: '2' })">Refetch Character</button> -->
   </main>
 </template>
 
