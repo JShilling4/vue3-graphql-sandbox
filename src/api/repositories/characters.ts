@@ -1,26 +1,33 @@
-import { useCharactersQuery, useCharacterQuery } from "../../gql";
-
-// export type Character = {
-//   id: string;
-//   name: string;
-// };
-
-// export type CharactersQuery = {
-//   characters: {
-//     results: Character[];
-//   };
-// };
-
-// export type CharacterQuery = {
-//   character: Character;
-// };
+import { graphql } from "../../gql";
+import { useQuery } from "@vue/apollo-composable";
 
 export const charactersRepository = {
   getAll() {
-    return useCharactersQuery();
+    return useQuery(
+      graphql(/* GraphQL */ `
+        query Characters {
+          characters {
+            results {
+              id
+              name
+            }
+          }
+        }
+      `)
+    );
   },
 
   get(id: string) {
-    return useCharacterQuery({ id });
+    return useQuery(
+      graphql(/* GraphQL */ `
+        query Character($id: ID!) {
+          character(id: $id) {
+            id
+            name
+          }
+        }
+      `),
+      { id }
+    );
   },
 };

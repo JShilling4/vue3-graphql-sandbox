@@ -1,25 +1,15 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { charactersRepository } from "./api/repositories/characters";
+import { ref } from "vue";
+import { useFetchCharacters } from "./composables/fetchCharacters";
+import { useFetchCharacter } from "./composables/fetchCharacter";
 
 const characterId = ref<string>("1");
 
-const {
-  result: charactersResult,
-  loading: charactersLoading,
-  error: charactersError,
-  refetch: fetchAllCharacters,
-} = charactersRepository.getAll();
-const characters = computed(
-  () => charactersResult.value?.characters?.results ?? []
-);
+const { characters, charactersLoading, charactersError, refetchAllCharacters } =
+  useFetchCharacters();
 
-const {
-  result: characterResult,
-  loading: characterLoading,
-  refetch: fetchCharacter,
-} = charactersRepository.get(characterId.value);
-const character = computed(() => characterResult.value?.character);
+const { character, characterLoading, refetchCharacter } =
+  useFetchCharacter(characterId);
 </script>
 
 <template>
@@ -45,8 +35,8 @@ const character = computed(() => characterResult.value?.character);
       </p>
     </div>
 
-    <button @click="fetchAllCharacters()">Refetch Characters</button>
-    <button @click="fetchCharacter({ id: '2' })">Refetch Character</button>
+    <button @click="refetchAllCharacters()">Refetch Characters</button>
+    <button @click="refetchCharacter({ id: '2' })">Refetch Character</button>
   </main>
 </template>
 
