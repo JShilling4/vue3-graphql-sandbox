@@ -1,20 +1,15 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { getAllCharacters, getCharacter } from "./api/graphql/queries";
+import { useFetchCharacters } from "./composables/fetchCharacters";
+import { useFetchCharacter } from "./composables/fetchCharacter";
 
 const characterId = ref<string>("1");
 
-const {
-  result: charactersResult,
-  loading: charactersLoading,
-  error: charactersError,
-} = getAllCharacters();
+const { characters, charactersLoading, charactersError, refetchAllCharacters } =
+  useFetchCharacters();
 
-const { result: characterResult } = getCharacter(characterId);
-
-function selectCharacter(id: string) {
-  characterId.value = id;
-}
+const { character, characterLoading, refetchCharacter } =
+  useFetchCharacter(characterId);
 </script>
 
 <template>
@@ -25,21 +20,23 @@ function selectCharacter(id: string) {
         Something went wrong...{{ charactersError.message }}
       </p>
       <p v-if="charactersLoading">Loading...</p>
-      <p
-        v-else
-        v-for="character in charactersResult.characters.results"
-        :key="character.id"
-        @click="selectCharacter(character.id)"
-      >
+      <div v-if="characters && characters.length">
+        <p v-for="(char, i) in characters" :key="i">
+          {{ char?.name }}
+        </p>
+      </div>
+    </div>
+
+    <div class="query-block">
+      <h1>Get Character By Id</h1>
+      <p v-if="characterLoading">Loading...</p>
+      <p v-else-if="character" class="">
         {{ character.name }}
       </p>
     </div>
-    <div class="query-block">
-      <h1>Get Character By Id</h1>
-      <p v-if="characterResult" class="">
-        {{ characterResult.character.name }}
-      </p>
-    </div>
+
+    <button @click="refetchAllCharacters()">Refetch Characters</button>
+    <button @click="refetchCharacter({ id: '2' })">Refetch Character</button>
   </main>
 </template>
 
